@@ -1,0 +1,5 @@
+server:
+  shutdown: graceful
+  compression:
+    enabled: true
+
