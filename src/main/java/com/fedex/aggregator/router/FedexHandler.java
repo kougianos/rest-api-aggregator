@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ServiceHandler {
+public class FedexHandler {
 
     public Mono<ServerResponse> updateItems(ServerRequest request) {
 

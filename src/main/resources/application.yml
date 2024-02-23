@@ -2,4 +2,10 @@ server:
   shutdown: graceful
   compression:
     enabled: true
+#  port: 8081
 
+app:
+  external-api:
+    url: http://localhost:8081
+    read-timeout-millis: 5000
+    connect-timeout-millis: 2000
