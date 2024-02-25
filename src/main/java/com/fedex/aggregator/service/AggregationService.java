@@ -30,7 +30,7 @@ public class AggregationService {
 
     private void callExternalApiAndPopulateList(List<Mono<Entry<String, GenericMap>>> monoList, String apiName,
                                                 String params) {
-        List<String> paramList = Arrays.asList(params.split(","));
+        var paramList = Arrays.stream(params.split(",")).distinct();
         paramList.forEach(param -> {
             var apiCallMono = client.get(apiName, param, GenericMap.class)
                 .defaultIfEmpty(new GenericMap())
