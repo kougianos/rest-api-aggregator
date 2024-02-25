@@ -13,10 +13,10 @@ public class ExternalApiClient {
 
     private final WebClient webClient;
 
-    public <T> Mono<T> get(String path, Class<T> clazz) {
+    public <T> Mono<T> get(String path, String queryVariables, Class<T> clazz) {
         return webClient
             .get()
-            .uri(path)
+            .uri(path + "?q={queryVariables}", queryVariables)
             .retrieve()
             .bodyToMono(clazz)
             .onErrorResume(e -> {
