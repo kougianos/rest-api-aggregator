@@ -3,7 +3,7 @@ package com.fedex.aggregator.dto;
 public final class Constants {
 
     private Constants() {
-        throw new IllegalStateException("Util class");
+        throw new IllegalStateException("Constants class");
     }
 
     public static final String PRICING = "pricing";
