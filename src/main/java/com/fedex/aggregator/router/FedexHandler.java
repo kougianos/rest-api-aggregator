@@ -26,13 +26,15 @@ public class FedexHandler {
     private final AggregationService aggregationService;
 
     public Mono<ServerResponse> getAggregatedResponse(ServerRequest request) {
+        long startTime = System.currentTimeMillis();
         log.info("REQUEST: {}", request.queryParams().toSingleValueMap());
         Map<String, String> parameters = cleanQueryParameters(request);
 
         var serverResponse = aggregationService.getAggregatedResponse(parameters);
 
         return serverResponse.flatMap(resp -> {
-            log.info("RESPONSE: {}\n", resp);
+            long endTime = System.currentTimeMillis();
+            log.info("RESPONSE ({}ms): {}", endTime - startTime, resp);
             return ServerResponse.ok().bodyValue(resp);
         });
 
