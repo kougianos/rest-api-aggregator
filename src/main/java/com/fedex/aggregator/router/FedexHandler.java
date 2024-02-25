@@ -22,7 +22,7 @@ import static com.fedex.aggregator.dto.Constants.*;
 public class FedexHandler {
 
     // can be moved to app properties
-    private static final List<String> acceptableParameters = List.of(PRICING, TRACK, SHIPMENTS);
+    private static final List<String> ACCEPTABLE_PARAMETERS = List.of(PRICING, TRACK, SHIPMENTS);
     private final AggregationService aggregationService;
 
     public Mono<ServerResponse> getAggregatedResponse(ServerRequest request) {
@@ -34,7 +34,7 @@ public class FedexHandler {
 
         return serverResponse.flatMap(resp -> {
             long endTime = System.currentTimeMillis();
-            log.info("RESPONSE ({}ms): {}", endTime - startTime, resp);
+            log.info("RESPONSE ({}ms): {}\n", endTime - startTime, resp);
             return ServerResponse.ok().bodyValue(resp);
         });
 
@@ -42,7 +42,7 @@ public class FedexHandler {
 
     private Map<String, String> cleanQueryParameters(ServerRequest request) {
         var map = new HashMap<>(request.queryParams());
-        map.keySet().retainAll(acceptableParameters);
+        map.keySet().retainAll(ACCEPTABLE_PARAMETERS);
         return map.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().get(0)));
     }
 

@@ -20,10 +20,10 @@ public class ExternalApiClient {
             .retrieve()
             .bodyToMono(clazz)
             .onErrorResume(e -> {
-                log.warn("Error getting response for {}\nCause: ", path, e);
+                log.warn("Error getting response for {}?q={}\nCause: ", path, queryVariables, e);
                 return Mono.empty();
             })
-            .doOnNext(r -> log.info("Response for {}: {}", path, r));
+            .doOnNext(r -> log.info("Response for {}?q={}: {}", path, queryVariables, r));
     }
 
 }
