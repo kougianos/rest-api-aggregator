@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,7 +25,8 @@ public class ExternalApiClient {
                 log.warn("Error getting response for {}?q={}\nCause: ", path, queryVariables, e);
                 return Mono.empty();
             })
-            .doOnNext(r -> log.info("Response for {}?q={}: {}", path, queryVariables, r));
+            .doOnNext(r -> log.info("Response for {}?q={}: {}", path, queryVariables, r))
+            .cache(Duration.ofSeconds(5));
     }
 
 }
