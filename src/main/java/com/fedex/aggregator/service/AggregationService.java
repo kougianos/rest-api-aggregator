@@ -56,8 +56,7 @@ public class AggregationService {
                         if (queue.size() == QUEUE_SIZE && queue.containsAll(paramList)) {
                             completedApis.add(apiName);
 
-                            var apiCallMono = client.get(apiName, String.join(",", queue.stream().toList()), GenericMap.class)
-                                .defaultIfEmpty(new GenericMap())
+                            var apiCallMono = client.get(apiName, String.join(",", queue.stream().toList()))
                                 .doOnNext(response -> {
                                     apiResponses.put(apiName, response);
                                     log.info("clearing queue {}", apiName);
@@ -110,8 +109,7 @@ public class AggregationService {
 //                log.info("clearing queue {}", apiName);
 //                queue.clear();
 
-                var apiCallMono = client.get(apiName, p, GenericMap.class)
-                    .defaultIfEmpty(new GenericMap())
+                var apiCallMono = client.get(apiName, p)
                     .doOnNext(response -> {
                         apiResponses.put(apiName, response);
                     })
