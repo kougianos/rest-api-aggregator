@@ -101,7 +101,7 @@ public class AggregationService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-                queueSemaphore.release(); // Release the semaphore permit
+                queueSemaphore.release();
             }
 
         });
