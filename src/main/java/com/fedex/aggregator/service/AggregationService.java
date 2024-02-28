@@ -42,14 +42,16 @@ public class AggregationService {
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             paramList.forEach(param -> {
+
                 if (!queue.contains(param)) {
                     synchronized (queue) {
                         queue.add(param);
                         queue.notifyAll();
-
+                        log.error("Adding {} {}", param, queue);
                     }
                 }
-                if (queue.size() == QUEUE_SIZE && queue.containsAll(paramList)) {
+
+                if (queue.size() == QUEUE_SIZE) {
                     completedApis.add(apiName);
 
                     var apiCallMono = client.get(apiName, String.join(",", queue.stream().toList()))
