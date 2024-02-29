@@ -116,20 +116,6 @@ public class AggregationService {
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters));
     }
 
-    private List<String> take5ElemementsFromQueue(BlockingQueue<String> queue, String apiName) {
-        // Get 5 elements of queue
-        List<String> first5paramsInQueue = new ArrayList<>();
-        try {
-            for (int i = 0; i < 5; i++) {
-                first5paramsInQueue.add(queue.take());
-            }
-            log.info("Get 5 elements from Queue {} {}", apiName, queue);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return first5paramsInQueue;
-    }
-
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
         return Mono.zip(monoList, objects -> Arrays.stream(objects)
             .map(obj -> (Entry<String, GenericMap>) obj)
@@ -150,6 +136,31 @@ public class AggregationService {
         FedexUtils.removeEmptyEntriesFromMap(aggregatedResponse);
 
         return aggregatedResponse;
+    }
+
+    private String take5ElemementsFromQueue(BlockingQueue<String> queue, String apiName) {
+        List<String> first5paramsInQueue = new ArrayList<>();
+        try {
+            for (int i = 0; i < 5; i++) {
+                first5paramsInQueue.add(queue.take());
+            }
+            log.info("Get 5 elements from Queue {} {}", apiName, queue);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return String.join(",",first5paramsInQueue);
+    }
+
+    private String extractFirstFiveElements(BlockingQueue<String> queue) {
+        Object[] array = queue.toArray();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 5 && i < array.length; i++) {
+            if (i > 0) {
+                result.append(",");
+            }
+            result.append(array[i]);
+        }
+        return result.toString();
     }
 
     @Scheduled(fixedRate = 4000)
