@@ -90,10 +90,7 @@ public class AggregationService {
                     // Queue size is 5, proceed
                     log.info("Queue {} size is 5 now {}", apiName, queue);
 
-                    // Get 5 elements of queue
-                    List<String> first5paramsInQueue = take5ElemementsFromQueue(queue, apiName);
-
-                    var p = String.join(",", first5paramsInQueue);
+                    var p = take5ElemementsFromQueue(queue, apiName);
 
                     var apiCallMono = client.get(apiName, p)
                         .map(response -> Map.entry(apiName, response));
