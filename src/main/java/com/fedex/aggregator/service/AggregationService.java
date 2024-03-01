@@ -57,14 +57,7 @@ public class AggregationService {
                 if (queue.size() == QUEUE_SIZE && queue.containsAll(paramList)) {
                     completedApis.add(apiName);
 
-                    String p;
-                    if (queueSemaphore.tryAcquire()) {
-                        p = takeFiveElements(queue);
-                    } else {
-                        p = readFiveElements(queue);
-                    }
-
-                    var apiCallMono = client.get(apiName, p)
+                    var apiCallMono = client.get(apiName, readFiveElements(queue))
                         .doOnNext(response -> {
                             monoMap.remove(apiName);
                         })
@@ -85,8 +78,6 @@ public class AggregationService {
 
             BlockingQueue<String> queue = apiQueues.get(apiName);
 
-            log.error("BLOCK SEMAPHORE");
-            queueSemaphore.acquireUninterruptibly();
             synchronized (queue) {
                 while (queue.size() < QUEUE_SIZE) {
                     log.info("Thread is waiting for queue {} to become 5... {}", apiName, queue);
@@ -109,9 +100,6 @@ public class AggregationService {
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
-            queueSemaphore.release();
-            log.error("RELEASE SEMAPHORE");
-
 
         });
 
