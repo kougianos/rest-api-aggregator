@@ -43,6 +43,8 @@ public class AggregationService {
 
             paramList.forEach(param -> {
 
+                var emptyQueueFlag = queue.isEmpty();
+
                 if (!queue.contains(param)) {
                     synchronized (queue) {
                         queue.add(param);
@@ -51,13 +53,19 @@ public class AggregationService {
                     }
                 }
 
-                if (queue.size() == QUEUE_SIZE) {
+                if (queue.size() == QUEUE_SIZE && queue.containsAll(paramList)) {
                     completedApis.add(apiName);
 
-                    var apiCallMono = client.get(apiName, String.join(",", queue.stream().toList()))
+                    String p;
+                    if (queueSemaphore.tryAcquire()) {
+                        p = take5ElemementsFromQueue(queue, apiName);
+                    } else {
+                        p = extractFirstFiveElements(queue);
+                    }
+
+                    var apiCallMono = client.get(apiName, p)
                         .doOnNext(response -> {
-                            log.info("clearing queue {}", apiName);
-                            queue.clear();
+                            monoMap.remove(apiName);
                         })
                         .map(response -> Map.entry(apiName, response));
 
@@ -76,32 +84,33 @@ public class AggregationService {
 
             BlockingQueue<String> queue = apiQueues.get(apiName);
 
-            try {
-                queueSemaphore.acquire(); // Acquire the semaphore permit
-                synchronized (queue) {
-                    while (queue.size() < QUEUE_SIZE) {
-                        log.info("Thread is waiting for queue {} to become 5... {}", apiName, queue);
-                        try {
-                            queue.wait();
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
+            log.error("BLOCK SEMAPHORE");
+            queueSemaphore.acquireUninterruptibly();
+            synchronized (queue) {
+                while (queue.size() < QUEUE_SIZE) {
+                    log.info("Thread is waiting for queue {} to become 5... {}", apiName, queue);
+                    try {
+                        queue.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
-                    // Queue size is 5, proceed
-                    log.info("Queue {} size is 5 now {}", apiName, queue);
-
-                    var p = take5ElemementsFromQueue(queue, apiName);
-
-                    var apiCallMono = client.get(apiName, p)
-                        .map(response -> Map.entry(apiName, response));
-                    monoMap.putIfAbsent(apiName, apiCallMono);
-
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                queueSemaphore.release();
+                // Queue size is 5, proceed
+                log.info("Queue {} size is 5 now {}", apiName, queue);
+
+                var p = take5ElemementsFromQueue(queue, apiName);
+
+                var apiCallMono = client.get(apiName, p)
+                    .doOnNext(response -> {
+                        monoMap.remove(apiName);
+                    })
+                    .map(response -> Map.entry(apiName, response));
+                monoMap.putIfAbsent(apiName, apiCallMono);
+
             }
+            queueSemaphore.release();
+            log.error("RELEASE SEMAPHORE");
+
 
         });
 
