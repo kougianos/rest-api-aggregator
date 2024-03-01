@@ -144,20 +144,20 @@ public class AggregationService {
         return aggregatedResponse;
     }
 
-    private String take5ElemementsFromQueue(BlockingQueue<String> queue, String apiName) {
+    private String takeFiveElements(BlockingQueue<String> queue) {
         List<String> first5paramsInQueue = new ArrayList<>();
         try {
             for (int i = 0; i < 5; i++) {
                 first5paramsInQueue.add(queue.take());
             }
-            log.info("Get 5 elements from Queue {} {}", apiName, queue);
+            log.info("Get 5 elements from Queue {}", queue);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         return String.join(",",first5paramsInQueue);
     }
 
-    private String extractFirstFiveElements(BlockingQueue<String> queue) {
+    private String readFiveElements(BlockingQueue<String> queue) {
         Object[] array = queue.toArray();
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < 5 && i < array.length; i++) {
