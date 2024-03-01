@@ -59,9 +59,9 @@ public class AggregationService {
 
                     String p;
                     if (queueSemaphore.tryAcquire()) {
-                        p = take5ElemementsFromQueue(queue, apiName);
+                        p = takeFiveElements(queue);
                     } else {
-                        p = extractFirstFiveElements(queue);
+                        p = readFiveElements(queue);
                     }
 
                     var apiCallMono = client.get(apiName, p)
@@ -99,7 +99,7 @@ public class AggregationService {
                 // Queue size is 5, proceed
                 log.info("Queue {} size is 5 now {}", apiName, queue);
 
-                var p = take5ElemementsFromQueue(queue, apiName);
+                var p = takeFiveElements(queue);
 
                 var apiCallMono = client.get(apiName, p)
                     .doOnNext(response -> {
