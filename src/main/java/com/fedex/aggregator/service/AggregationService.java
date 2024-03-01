@@ -22,6 +22,7 @@ public class AggregationService {
     private static final int QUEUE_SIZE = 5;
     private final Map<String, Mono<Entry<String, GenericMap>>> monoMap = new ConcurrentHashMap<>();
     private final Semaphore queueSemaphore = new Semaphore(1);
+    private final ConcurrentMap<String, String> paramMap = new ConcurrentHashMap<>();
 
     public AggregationService(ExternalApiClient client) {
         this.client = client;
@@ -122,6 +123,17 @@ public class AggregationService {
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters));
     }
 
+    private void acquire() {
+        log.info("BLOCK SEMAPHORE");
+        queueSemaphore.acquireUninterruptibly();
+        log.info("UNBLOCK SEMAPHORE");
+    }
+
+    private void release() {
+        queueSemaphore.release();
+        log.info("RELEASE SEMAPHORE");
+    }
+
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
         return Mono.zip(monoList, objects -> Arrays.stream(objects)
             .map(obj -> (Entry<String, GenericMap>) obj)
@@ -171,6 +183,7 @@ public class AggregationService {
 
     @Scheduled(fixedRate = 4000)
     public void x() {
+        log.info("SEMAPHORE {}", queueSemaphore.availablePermits());
         log.info("QUEUES {}\n", apiQueues);
     }
 
