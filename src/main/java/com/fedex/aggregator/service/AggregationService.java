@@ -111,6 +111,12 @@ public class AggregationService {
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters));
     }
 
+    private boolean tryAcquire() {
+        var b = queueSemaphore.tryAcquire();
+        log.info("TRY ACQUIRE {}", b);
+        return b;
+    }
+
     private void acquire() {
         log.info("BLOCK SEMAPHORE");
         queueSemaphore.acquireUninterruptibly();
