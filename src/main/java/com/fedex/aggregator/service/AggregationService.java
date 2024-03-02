@@ -128,6 +128,14 @@ public class AggregationService {
         log.info("RELEASE SEMAPHORE");
     }
 
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
         return Mono.zip(monoList, objects -> Arrays.stream(objects)
             .map(obj -> (Entry<String, GenericMap>) obj)
@@ -152,6 +160,7 @@ public class AggregationService {
 
     private String takeFiveElements(BlockingQueue<String> queue) {
         List<String> first5paramsInQueue = new ArrayList<>();
+        log.info("Trying to take 5 elements from Queue {}...", queue);
         try {
             for (int i = 0; i < 5; i++) {
                 first5paramsInQueue.add(queue.take());
