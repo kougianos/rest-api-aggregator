@@ -82,8 +82,6 @@ public class AggregationService {
 
             var queue = apiQueues.get(apiName);
 
-//            acquire();
-
             synchronized (queue) {
                 while (queue.size() < QUEUE_SIZE) {
                     log.info("Thread is waiting for queue {} to become 5... {}", apiName, queue);
@@ -106,8 +104,6 @@ public class AggregationService {
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
-
-//            release();
 
         });
 
