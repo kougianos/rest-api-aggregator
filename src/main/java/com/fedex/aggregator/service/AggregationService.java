@@ -21,8 +21,6 @@ public class AggregationService {
     private final ConcurrentMap<String, BlockingQueue<String>> apiQueues;
     private static final int QUEUE_SIZE = 5;
     private final Map<String, Mono<Entry<String, GenericMap>>> monoMap = new ConcurrentHashMap<>();
-    private final Semaphore queueSemaphore = new Semaphore(1);
-    private final ConcurrentMap<String, String> paramMap = new ConcurrentHashMap<>();
 
     public AggregationService(ExternalApiClient client) {
         this.client = client;
@@ -65,14 +63,14 @@ public class AggregationService {
 
                 completedApis.add(apiName);
 
-                String p = String.join(",", queue.stream().toList());
-                var apiCallMono = client.get(apiName, p)
-                    .doOnNext(response -> {
-                        monoMap.remove(apiName);
-                        queue.clear();
-                    })
-                    .map(response -> Map.entry(apiName, response));
-                monoMap.putIfAbsent(apiName, apiCallMono);
+//                String p = String.join(",", queue.stream().toList());
+//                var apiCallMono = client.get(apiName, p)
+//                    .doOnNext(response -> {
+//                        monoMap.remove(apiName);
+//                        queue.clear();
+//                    })
+//                    .map(response -> Map.entry(apiName, response));
+//                monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
 
@@ -81,9 +79,9 @@ public class AggregationService {
         parameters.forEach((apiName, params) -> {
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
-            if (completedApis.contains(apiName)) {
-                return;
-            }
+//            if (completedApis.contains(apiName)) {
+//                return;
+//            }
 
             var queue = apiQueues.get(apiName);
 
@@ -121,31 +119,7 @@ public class AggregationService {
         Mono<List<Entry<String, GenericMap>>> zippedMono = zipApiResponses(monosFromParams.values().stream().toList());
         log.info("Calling APIS {}", monosFromParams.keySet());
 
-        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters)).doOnNext(m -> {
-            monoMap.clear();
-
-//            apiQueues.values().forEach(q -> {
-//                q.clear();
-//            });
-
-        });
-    }
-
-    private boolean tryAcquire() {
-        var b = queueSemaphore.tryAcquire();
-        log.info("TRY ACQUIRE {}", b);
-        return b;
-    }
-
-    private void acquire() {
-        log.info("BLOCK SEMAPHORE");
-        queueSemaphore.acquireUninterruptibly();
-        log.info("UNBLOCK SEMAPHORE");
-    }
-
-    private void release() {
-        queueSemaphore.release();
-        log.info("RELEASE SEMAPHORE");
+        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters)).doOnNext(m -> monoMap.clear());
     }
 
     private void sleep(int millis) {
@@ -157,7 +131,9 @@ public class AggregationService {
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
-        return Mono.zip(monoList, objects -> Arrays.stream(objects).map(obj -> (Entry<String, GenericMap>) obj).toList());
+        return Mono.zip(monoList, objects -> Arrays.stream(objects)
+            .map(obj -> (Entry<String, GenericMap>) obj)
+            .toList());
     }
 
     private Map<String, GenericMap> transformToAggregatedResponse(List<Entry<String, GenericMap>> responseList, Map<String, String> parameters) {
@@ -208,7 +184,6 @@ public class AggregationService {
 
     @Scheduled(fixedRate = 4000)
     public void x() {
-        log.info("SEMAPHORE {}", queueSemaphore.availablePermits());
         log.info("QUEUES {}\n", apiQueues);
     }
 
