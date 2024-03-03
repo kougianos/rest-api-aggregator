@@ -54,7 +54,6 @@ public class AggregationService {
         // iterate parameters, wait for queues with size < 5
         parameters.forEach((apiName, params) -> {
             var queue = queueManager.get(apiName);
-            var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             synchronized (queue) {
                 while (queue.size() < QUEUE_SIZE) {
@@ -69,9 +68,7 @@ public class AggregationService {
 
                 String p = String.join(",", queue.stream().toList());
                 var apiCallMono = client.get(apiName, p)
-                    .doOnNext(response -> {
-                        queue.clear();
-                    })
+                    .doOnNext(response -> queue.clear())
                     .map(response -> Map.entry(apiName, response));
 
                 monoMap.putIfAbsent(apiName, apiCallMono);
@@ -86,9 +83,7 @@ public class AggregationService {
         log.info("Calling APIS {}", monosFromParams.keySet());
 
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters))
-            .doOnNext(m -> {
-                monoMap.clear();
-            });
+            .doOnNext(m -> monoMap.clear());
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
