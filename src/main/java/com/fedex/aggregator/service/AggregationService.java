@@ -1,13 +1,15 @@
 package com.fedex.aggregator.service;
 
 import com.fedex.aggregator.dto.GenericMap;
-import com.fedex.aggregator.util.FedexUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,18 +106,16 @@ public class AggregationService {
             .toList());
     }
 
-    private Map<String, GenericMap> transformToAggregatedResponse(List<Entry<String, GenericMap>> responseList, Map<String, String> parameters) {
+    private Map<String, GenericMap> transformToAggregatedResponse(List<Entry<String, GenericMap>> responseList,
+                                                                  Map<String, String> parameters) {
         Map<String, GenericMap> aggregatedResponse = new HashMap<>();
-        aggregatedResponse.put(TRACK, new GenericMap());
-        aggregatedResponse.put(SHIPMENTS, new GenericMap());
-        aggregatedResponse.put(PRICING, new GenericMap());
+        parameters.keySet().forEach(apiName -> aggregatedResponse.put(apiName, new GenericMap()));
         responseList.forEach(responseEntry -> {
             var apiResponse = new GenericMap(responseEntry.getValue());
-            apiResponse.keySet().removeIf(key -> !Arrays.stream(parameters.get(responseEntry.getKey()).split(",")).toList().contains(key));
-            aggregatedResponse.put(responseEntry.getKey(), apiResponse);
+            apiResponse.keySet().removeIf(key -> !Arrays.stream(parameters.get(responseEntry.getKey()).split(","))
+                .toList().contains(key));
+            aggregatedResponse.put(responseEntry.getKey(), apiResponse.isEmpty() ? null : apiResponse);
         });
-
-        FedexUtils.removeEmptyEntriesFromMap(aggregatedResponse);
 
         return aggregatedResponse;
     }
