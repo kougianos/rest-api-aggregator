@@ -66,10 +66,12 @@ public class AggregationService {
                 completedApis.add(apiName);
 
                 String p = String.join(",", queue.stream().toList());
-
-                var apiCallMono = client.get(apiName, p).doOnNext(response -> {
-                    monoMap.remove(apiName);
-                }).map(response -> Map.entry(apiName, response));
+                var apiCallMono = client.get(apiName, p)
+                    .doOnNext(response -> {
+                        monoMap.remove(apiName);
+                        queue.clear();
+                    })
+                    .map(response -> Map.entry(apiName, response));
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
@@ -101,9 +103,10 @@ public class AggregationService {
                 String p = String.join(",", queue.stream().toList());
 
                 var apiCallMono = client.get(apiName, p)
-//                    .doOnNext(response -> {
-//                        monoMap.remove(apiName);
-//                    })
+                    .doOnNext(response -> {
+                        monoMap.remove(apiName);
+                        queue.clear();
+                    })
                     .map(response -> Map.entry(apiName, response));
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
@@ -121,9 +124,9 @@ public class AggregationService {
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters)).doOnNext(m -> {
             monoMap.clear();
 
-            apiQueues.values().forEach(q -> {
-                q.clear();
-            });
+//            apiQueues.values().forEach(q -> {
+//                q.clear();
+//            });
 
         });
     }
