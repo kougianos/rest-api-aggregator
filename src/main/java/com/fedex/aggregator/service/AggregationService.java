@@ -136,7 +136,7 @@ public class AggregationService {
         aggregatedResponse.put(PRICING, new GenericMap());
         responseList.forEach(responseEntry -> {
             var apiResponse = new GenericMap(responseEntry.getValue());
-            apiResponse.keySet().removeIf(key -> !parameters.get(responseEntry.getKey()).contains(key));
+            apiResponse.keySet().removeIf(key -> !Arrays.stream(parameters.get(responseEntry.getKey()).split(",")).toList().contains(key));
             aggregatedResponse.put(responseEntry.getKey(), apiResponse);
         });
 
