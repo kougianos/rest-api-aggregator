@@ -1,6 +1,7 @@
 package com.fedex.aggregator.service;
 
 import com.fedex.aggregator.dto.GenericMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,35 +12,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.fedex.aggregator.dto.Constants.*;
+import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AggregationService {
 
     private final ExternalApiClient client;
-    private final ConcurrentMap<String, BlockingQueue<String>> apiQueues;
-    private static final int QUEUE_SIZE = 5;
+    private final QueueManager queueManager;
     private final Map<String, Mono<Entry<String, GenericMap>>> monoMap = new ConcurrentHashMap<>();
-
-    public AggregationService(ExternalApiClient client) {
-        this.client = client;
-        this.apiQueues = new ConcurrentHashMap<>();
-        this.apiQueues.put(PRICING, new LinkedBlockingQueue<>());
-        this.apiQueues.put(TRACK, new LinkedBlockingQueue<>());
-        this.apiQueues.put(SHIPMENTS, new LinkedBlockingQueue<>());
-    }
 
     public Mono<Map<String, GenericMap>> getAggregatedResponse(Map<String, String> parameters) {
 
         // populate queues, if any queue exceeds size 5 notify all threads waiting on that queue.
         parameters.forEach((apiName, params) -> {
-            var queue = apiQueues.get(apiName);
+            var queue = queueManager.get(apiName);
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             paramList.forEach(param -> {
@@ -63,7 +53,7 @@ public class AggregationService {
 
         // iterate parameters, wait for queues with size < 5
         parameters.forEach((apiName, params) -> {
-            var queue = apiQueues.get(apiName);
+            var queue = queueManager.get(apiName);
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             synchronized (queue) {
@@ -123,7 +113,7 @@ public class AggregationService {
 
     @Scheduled(fixedRate = 4000)
     public void logQueues() {
-        log.info("QUEUES {}\n", apiQueues);
+        log.info("QUEUES {}\n", queueManager.getApiQueues());
     }
 
 }

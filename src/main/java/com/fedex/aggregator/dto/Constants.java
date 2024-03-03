@@ -9,5 +9,6 @@ public final class Constants {
     public static final String PRICING = "pricing";
     public static final String TRACK = "track";
     public static final String SHIPMENTS = "shipments";
+    public static final int QUEUE_SIZE = 5;
 
 }
