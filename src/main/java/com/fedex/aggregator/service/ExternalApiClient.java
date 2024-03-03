@@ -27,7 +27,7 @@ public class ExternalApiClient {
                 return Mono.just(new GenericMap());
             })
             .doOnNext(r -> log.info("Response for {}?q={}: {}", path, queryVariables, r))
-            .cache(Duration.ofSeconds(5));
+            .cache(Duration.ofSeconds(2));
     }
 
 }

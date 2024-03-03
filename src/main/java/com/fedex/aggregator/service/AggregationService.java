@@ -39,7 +39,8 @@ public class AggregationService {
 
         // populate queues, if queue reaches size 5 call API.
         parameters.forEach((apiName, params) -> {
-            BlockingQueue<String> queue = apiQueues.get(apiName);
+            var queue = apiQueues.get(apiName);
+
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             paramList.forEach(param -> {
@@ -49,34 +50,42 @@ public class AggregationService {
                 if (!queue.contains(param)) {
                     synchronized (queue) {
                         queue.add(param);
-                        queue.notifyAll();
+//                        queue.notifyAll();
                         log.error("Adding {} {}", param, queue);
                     }
                 }
 
-                if (queue.size() == QUEUE_SIZE && queue.containsAll(paramList)) {
-                    completedApis.add(apiName);
+            });
 
-                    var apiCallMono = client.get(apiName, readFiveElements(queue))
-                        .doOnNext(response -> {
-                            monoMap.remove(apiName);
-                        })
-                        .map(response -> Map.entry(apiName, response));
+            if (queue.size() >= QUEUE_SIZE) {
 
-                    monoMap.putIfAbsent(apiName, apiCallMono);
+                synchronized (queue) {
+                    queue.notifyAll();
                 }
 
-            });
+                completedApis.add(apiName);
+
+                String p = String.join(",", queue.stream().toList());
+
+                var apiCallMono = client.get(apiName, p).doOnNext(response -> {
+                    monoMap.remove(apiName);
+                }).map(response -> Map.entry(apiName, response));
+                monoMap.putIfAbsent(apiName, apiCallMono);
+
+            }
 
         });
 
         parameters.forEach((apiName, params) -> {
+            var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             if (completedApis.contains(apiName)) {
                 return;
             }
 
-            BlockingQueue<String> queue = apiQueues.get(apiName);
+            var queue = apiQueues.get(apiName);
+
+//            acquire();
 
             synchronized (queue) {
                 while (queue.size() < QUEUE_SIZE) {
@@ -87,19 +96,20 @@ public class AggregationService {
                         Thread.currentThread().interrupt();
                     }
                 }
-                // Queue size is 5, proceed
                 log.info("Queue {} size is 5 now {}", apiName, queue);
 
-                var p = takeFiveElements(queue);
+                String p = String.join(",", queue.stream().toList());
 
                 var apiCallMono = client.get(apiName, p)
-                    .doOnNext(response -> {
-                        monoMap.remove(apiName);
-                    })
+//                    .doOnNext(response -> {
+//                        monoMap.remove(apiName);
+//                    })
                     .map(response -> Map.entry(apiName, response));
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
+
+//            release();
 
         });
 
@@ -108,7 +118,14 @@ public class AggregationService {
         Mono<List<Entry<String, GenericMap>>> zippedMono = zipApiResponses(monosFromParams.values().stream().toList());
         log.info("Calling APIS {}", monosFromParams.keySet());
 
-        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters));
+        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters)).doOnNext(m -> {
+            monoMap.clear();
+
+            apiQueues.values().forEach(q -> {
+                q.clear();
+            });
+
+        });
     }
 
     private boolean tryAcquire() {
@@ -137,9 +154,7 @@ public class AggregationService {
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
-        return Mono.zip(monoList, objects -> Arrays.stream(objects)
-            .map(obj -> (Entry<String, GenericMap>) obj)
-            .toList());
+        return Mono.zip(monoList, objects -> Arrays.stream(objects).map(obj -> (Entry<String, GenericMap>) obj).toList());
     }
 
     private Map<String, GenericMap> transformToAggregatedResponse(List<Entry<String, GenericMap>> responseList, Map<String, String> parameters) {
@@ -169,7 +184,7 @@ public class AggregationService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        return String.join(",",first5paramsInQueue);
+        return String.join(",", first5paramsInQueue);
     }
 
     private String readFiveElements(BlockingQueue<String> queue) {
