@@ -184,6 +184,10 @@ public class AggregationService {
         return result.toString();
     }
 
+    private Set<String> readFiveElementsSet(BlockingQueue<String> queue) {
+        return new HashSet<>(Arrays.asList(readFiveElements(queue).split(",")));
+    }
+
     @Scheduled(fixedRate = 4000)
     public void x() {
         log.info("SEMAPHORE {}", queueSemaphore.availablePermits());
