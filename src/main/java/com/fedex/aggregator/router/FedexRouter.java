@@ -30,17 +30,4 @@ public class FedexRouter {
             .build();
     }
 
-//    @Bean
-//    RouterFunction<ServerResponse> test() {
-//        return RouterFunctions.route(GET("/{path}"), this::testFunctionality);
-//    }
-//
-//    private Mono<ServerResponse> testFunctionality(ServerRequest request) {
-//        var path = request.pathVariable("path");
-//        return client.get("/track", "109347263,123456891", GenericMap.class)
-//            .flatMap(response -> ServerResponse.ok()
-//                .contentType(APPLICATION_JSON)
-//                .bodyValue(response));
-//    }
-
 }
