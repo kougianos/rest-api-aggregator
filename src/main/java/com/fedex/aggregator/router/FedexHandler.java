@@ -3,6 +3,7 @@ package com.fedex.aggregator.router;
 import com.fedex.aggregator.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -26,15 +27,16 @@ public class FedexHandler {
     private final AggregationService aggregationService;
 
     public Mono<ServerResponse> getAggregatedResponse(ServerRequest request) {
+        var requestId = RandomStringUtils.randomAlphabetic(5);
         long startTime = System.currentTimeMillis();
-        log.info("REQUEST: {}", request.queryParams().toSingleValueMap());
+        log.info("REQUEST {}: {}", requestId, request.queryParams().toSingleValueMap());
         Map<String, String> parameters = cleanQueryParameters(request);
 
         var serverResponse = aggregationService.getAggregatedResponse(parameters);
 
         return serverResponse.flatMap(resp -> {
             long endTime = System.currentTimeMillis();
-            log.info("RESPONSE ({}ms): {}\n", endTime - startTime, resp);
+            log.info("RESPONSE {} ({}ms): {}\n", requestId, endTime - startTime, resp);
             return ServerResponse.ok().bodyValue(resp);
         });
 
