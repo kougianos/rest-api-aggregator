@@ -43,12 +43,9 @@ public class AggregationService {
 
             paramList.forEach(param -> {
 
-                var emptyQueueFlag = queue.isEmpty();
-
                 if (!queue.contains(param)) {
                     synchronized (queue) {
                         queue.add(param);
-//                        queue.notifyAll();
                         log.error("Adding {} {}", param, queue);
                     }
                 }
