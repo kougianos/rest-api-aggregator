@@ -9,3 +9,4 @@ app:
     url: http://localhost:8081
     read-timeout-millis: 5000
     connect-timeout-millis: 2000
+  enable-queue-scheduler: false
