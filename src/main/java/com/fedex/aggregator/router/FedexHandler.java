@@ -45,7 +45,7 @@ public class FedexHandler {
     private Map<String, String> cleanQueryParameters(ServerRequest request) {
         var map = new HashMap<>(request.queryParams());
         map.keySet().retainAll(ACCEPTABLE_PARAMETERS);
-        return map.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().get(0)));
+        return map.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getFirst()));
     }
 
 }
