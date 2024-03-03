@@ -61,6 +61,7 @@ public class AggregationService {
 
         });
 
+        // iterate parameters, wait for queues with size < 5
         parameters.forEach((apiName, params) -> {
             var queue = apiQueues.get(apiName);
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
@@ -77,12 +78,12 @@ public class AggregationService {
                 log.info("Queue {} size is >= 5 {}", apiName, queue);
 
                 String p = String.join(",", queue.stream().toList());
-
                 var apiCallMono = client.get(apiName, p)
                     .doOnNext(response -> {
                         queue.clear();
                     })
                     .map(response -> Map.entry(apiName, response));
+
                 monoMap.putIfAbsent(apiName, apiCallMono);
 
             }
