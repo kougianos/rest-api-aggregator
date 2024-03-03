@@ -3,6 +3,7 @@ package com.fedex.aggregator.router;
 import com.fedex.aggregator.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -22,19 +23,20 @@ import static com.fedex.aggregator.dto.Constants.*;
 public class FedexHandler {
 
     // can be moved to app properties
-    private static final List<String> acceptableParameters = List.of(PRICING, TRACK, SHIPMENTS);
+    private static final List<String> ACCEPTABLE_PARAMETERS = List.of(PRICING, TRACK, SHIPMENTS);
     private final AggregationService aggregationService;
 
     public Mono<ServerResponse> getAggregatedResponse(ServerRequest request) {
+        var requestId = RandomStringUtils.randomAlphabetic(5);
         long startTime = System.currentTimeMillis();
-        log.info("REQUEST: {}", request.queryParams().toSingleValueMap());
+        log.info("REQUEST {}: {}", requestId, request.queryParams().toSingleValueMap());
         Map<String, String> parameters = cleanQueryParameters(request);
 
         var serverResponse = aggregationService.getAggregatedResponse(parameters);
 
         return serverResponse.flatMap(resp -> {
             long endTime = System.currentTimeMillis();
-            log.info("RESPONSE ({}ms): {}", endTime - startTime, resp);
+            log.info("RESPONSE {} ({}ms): {}\n", requestId, endTime - startTime, resp);
             return ServerResponse.ok().bodyValue(resp);
         });
 
@@ -42,8 +44,8 @@ public class FedexHandler {
 
     private Map<String, String> cleanQueryParameters(ServerRequest request) {
         var map = new HashMap<>(request.queryParams());
-        map.keySet().retainAll(acceptableParameters);
-        return map.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().get(0)));
+        map.keySet().retainAll(ACCEPTABLE_PARAMETERS);
+        return map.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getFirst()));
     }
 
 }
