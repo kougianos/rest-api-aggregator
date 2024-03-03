@@ -9,7 +9,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.fedex.aggregator.dto.Constants.*;
 
@@ -28,17 +31,13 @@ public class AggregationService {
         this.apiQueues.put(PRICING, new LinkedBlockingQueue<>());
         this.apiQueues.put(TRACK, new LinkedBlockingQueue<>());
         this.apiQueues.put(SHIPMENTS, new LinkedBlockingQueue<>());
-
     }
 
     public Mono<Map<String, GenericMap>> getAggregatedResponse(Map<String, String> parameters) {
 
-        Set<String> completedApis = new HashSet<>();
-
-        // populate queues, if queue reaches size 5 call API.
+        // populate queues, if any queue exceeds size 5 notify all threads waiting on that queue.
         parameters.forEach((apiName, params) -> {
             var queue = apiQueues.get(apiName);
-
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             paramList.forEach(param -> {
@@ -53,51 +52,32 @@ public class AggregationService {
             });
 
             if (queue.size() >= QUEUE_SIZE) {
-
                 synchronized (queue) {
                     queue.notifyAll();
                 }
-
-                completedApis.add(apiName);
-
-//                String p = String.join(",", queue.stream().toList());
-//                var apiCallMono = client.get(apiName, p)
-//                    .doOnNext(response -> {
-//                        monoMap.remove(apiName);
-//                        queue.clear();
-//                    })
-//                    .map(response -> Map.entry(apiName, response));
-//                monoMap.putIfAbsent(apiName, apiCallMono);
-
             }
 
         });
 
         parameters.forEach((apiName, params) -> {
-            var paramList = Arrays.stream(params.split(",")).distinct().toList();
-
-//            if (completedApis.contains(apiName)) {
-//                return;
-//            }
-
             var queue = apiQueues.get(apiName);
+            var paramList = Arrays.stream(params.split(",")).distinct().toList();
 
             synchronized (queue) {
                 while (queue.size() < QUEUE_SIZE) {
-                    log.info("Thread is waiting for queue {} to become 5... {}", apiName, queue);
+                    log.info("Thread is waiting for queue {} ... {}", apiName, queue);
                     try {
                         queue.wait();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 }
-                log.info("Queue {} size is 5 now {}", apiName, queue);
+                log.info("Queue {} size is >= 5 {}", apiName, queue);
 
                 String p = String.join(",", queue.stream().toList());
 
                 var apiCallMono = client.get(apiName, p)
                     .doOnNext(response -> {
-                        monoMap.remove(apiName);
                         queue.clear();
                     })
                     .map(response -> Map.entry(apiName, response));
@@ -112,15 +92,10 @@ public class AggregationService {
         Mono<List<Entry<String, GenericMap>>> zippedMono = zipApiResponses(monosFromParams.values().stream().toList());
         log.info("Calling APIS {}", monosFromParams.keySet());
 
-        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters)).doOnNext(m -> monoMap.clear());
-    }
-
-    private void sleep(int millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters))
+            .doOnNext(m -> {
+                monoMap.clear();
+            });
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
@@ -145,38 +120,8 @@ public class AggregationService {
         return aggregatedResponse;
     }
 
-    private String takeFiveElements(BlockingQueue<String> queue) {
-        List<String> first5paramsInQueue = new ArrayList<>();
-        log.info("Trying to take 5 elements from Queue {}...", queue);
-        try {
-            for (int i = 0; i < 5; i++) {
-                first5paramsInQueue.add(queue.take());
-            }
-            log.info("Get 5 elements from Queue {}", queue);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return String.join(",", first5paramsInQueue);
-    }
-
-    private String readFiveElements(BlockingQueue<String> queue) {
-        Object[] array = queue.toArray();
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < 5 && i < array.length; i++) {
-            if (i > 0) {
-                result.append(",");
-            }
-            result.append(array[i]);
-        }
-        return result.toString();
-    }
-
-    private Set<String> readFiveElementsSet(BlockingQueue<String> queue) {
-        return new HashSet<>(Arrays.asList(readFiveElements(queue).split(",")));
-    }
-
     @Scheduled(fixedRate = 4000)
-    public void x() {
+    public void logQueues() {
         log.info("QUEUES {}\n", apiQueues);
     }
 
