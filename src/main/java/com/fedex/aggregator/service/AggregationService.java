@@ -37,7 +37,7 @@ public class AggregationService {
                 if (!queue.contains(param)) {
                     synchronized (queue) {
                         queue.add(param);
-                        log.error("Adding {} {}", param, queue);
+                        log.info("Adding {} {}", param, queue);
                     }
                 }
 
@@ -80,7 +80,6 @@ public class AggregationService {
         var monosFromParams = new HashMap<>(monoMap);
         monosFromParams.keySet().removeIf(key -> !parameters.containsKey(key));
         Mono<List<Entry<String, GenericMap>>> zippedMono = zipApiResponses(monosFromParams.values().stream().toList());
-        log.info("Calling APIS {}", monosFromParams.keySet());
 
         return zippedMono.map(list -> transformToAggregatedResponse(list, parameters))
             .doOnNext(m -> monoMap.clear());
