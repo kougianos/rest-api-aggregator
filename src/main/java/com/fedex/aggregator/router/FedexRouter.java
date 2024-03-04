@@ -1,6 +1,5 @@
 package com.fedex.aggregator.router;
 
-import com.fedex.aggregator.service.ExternalApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class FedexRouter {
 
     private final FedexHandler fedexHandler;
-    private final ExternalApiClient client;
 
     @Bean
     public RouterFunction<ServerResponse> aggregatorRouter() {
