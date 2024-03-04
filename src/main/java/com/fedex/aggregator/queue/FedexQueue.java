@@ -30,8 +30,4 @@ public class FedexQueue extends LinkedBlockingQueue<String> {
         super.clear();
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + " --oldestInsertion=" + oldestElementInsertTimestamp.getEpochSecond();
-    }
 }

@@ -4,7 +4,6 @@ import com.fedex.aggregator.queue.FedexQueue;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -23,7 +22,7 @@ public class QueueManager {
         this.apiQueues.put(SHIPMENTS, new FedexQueue());
     }
 
-    public BlockingQueue<String> get(String apiName) {
+    public FedexQueue get(String apiName) {
         return apiQueues.get(apiName);
     }
 

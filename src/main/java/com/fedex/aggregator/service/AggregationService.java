@@ -1,18 +1,17 @@
 package com.fedex.aggregator.service;
 
 import com.fedex.aggregator.dto.GenericMap;
+import com.fedex.aggregator.queue.FedexQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
 
@@ -23,11 +22,14 @@ public class AggregationService {
 
     private final ExternalApiClient client;
     private final QueueManager queueManager;
-    private final Map<String, Mono<Entry<String, GenericMap>>> monoMap = new ConcurrentHashMap<>();
+    private final Map<String, Mono<Entry<String, GenericMap>>> apiCallMap = new ConcurrentHashMap<>();
+    private final Semaphore semaphore = new Semaphore(1);
 
     public Mono<Map<String, GenericMap>> getAggregatedResponse(Map<String, String> parameters) {
+        var completedApis = new HashSet<>();
 
-        // populate queues, if any queue exceeds size 5 notify all threads waiting on that queue.
+        // populate queues, if any queue exceeds size 5 notify all threads waiting on that queue,
+        // and add API call to shared map.
         parameters.forEach((apiName, params) -> {
             var queue = queueManager.get(apiName);
             var paramList = Arrays.stream(params.split(",")).distinct().toList();
@@ -44,15 +46,23 @@ public class AggregationService {
             });
 
             if (queue.size() >= QUEUE_SIZE) {
+                completedApis.add(apiName);
+
                 synchronized (queue) {
                     queue.notifyAll();
                 }
+
+                callAPIAndAddToMap(queue, apiName);
             }
 
         });
 
-        // iterate parameters, wait for queues with size < 5
+        // iterate parameters, wait for queues with size < 5. Skip completed APIs.
         parameters.forEach((apiName, params) -> {
+            if (completedApis.contains(apiName)) {
+                return;
+            }
+
             var queue = queueManager.get(apiName);
 
             synchronized (queue) {
@@ -66,23 +76,29 @@ public class AggregationService {
                 }
                 log.info("Queue {} size is >= 5 {}", apiName, queue);
 
-                String p = String.join(",", queue.stream().toList());
-                var apiCallMono = client.get(apiName, p)
-                    .doOnNext(response -> queue.clear())
-                    .map(response -> Map.entry(apiName, response));
-
-                monoMap.putIfAbsent(apiName, apiCallMono);
+                callAPIAndAddToMap(queue, apiName);
 
             }
 
         });
 
-        var monosFromParams = new HashMap<>(monoMap);
-        monosFromParams.keySet().removeIf(key -> !parameters.containsKey(key));
-        Mono<List<Entry<String, GenericMap>>> zippedMono = zipApiResponses(monosFromParams.values().stream().toList());
+        var localApiCall = new HashMap<>(apiCallMap);
+        // Call only the APIs that were requested by this thread
+        localApiCall.keySet().removeIf(key -> !parameters.containsKey(key));
+        Mono<List<Entry<String, GenericMap>>> zippedApiCalls = zipApiResponses(localApiCall.values().stream().toList());
 
-        return zippedMono.map(list -> transformToAggregatedResponse(list, parameters))
-            .doOnNext(m -> monoMap.clear());
+        return zippedApiCalls.map(list -> transformToAggregatedResponse(list, parameters));
+    }
+
+    private void callAPIAndAddToMap(FedexQueue queue, String apiName) {
+        String p = String.join(",", queue.stream().toList());
+        var apiCallMono = client.get(apiName, p)
+            .doOnNext(response -> {
+                queue.clear();
+                apiCallMap.remove(apiName);
+            })
+            .map(response -> Map.entry(apiName, response));
+        apiCallMap.putIfAbsent(apiName, apiCallMono);
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
