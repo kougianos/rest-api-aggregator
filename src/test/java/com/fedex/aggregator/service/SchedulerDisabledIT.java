@@ -40,11 +40,6 @@ class SchedulerDisabledIT {
     @MockBean
     ExternalApiClient externalApiClient;
 
-    @BeforeEach
-    void setup() {
-
-    }
-
     @BeforeAll
     static void beforeAll() throws IOException {
         server = new MockWebServer();
@@ -320,7 +315,6 @@ class SchedulerDisabledIT {
      * Verify queues empty.
      */
     @Test
-//    @Disabled
     void testQueueScenario3() {
         //Mock Track Response
         var trackResponse = new GenericMap();
