@@ -33,4 +33,4 @@ The API Aggregation Service Contract  has this request/response example:
 
 Which suggests that individual API calls should be sent for every comma separated value in the parameters. Thus, in this particular example **a total of 6 API calls are sent to the External API** (2 calls for pricing, 2 for track, 2 for shipments) Otherwise it wouldn't be possible to have one value populated and one value null, like it is shown in the example.
 
-**This functionality is implemented in story 1 (branch `1-query-all-services-in-a-single-network`) but has been removed in the next pull requests where batching is in place.**
+**This functionality is implemented in story 1 (branch `1-query-all-services-in-a-single-network`) but has been removed in the next pull requests where batching is in place.** Which means it is not entirely possible to build on top of each pull request as the response transformation logic had to be slightly refactored.
