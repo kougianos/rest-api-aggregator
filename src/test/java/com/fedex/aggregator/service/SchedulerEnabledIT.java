@@ -40,6 +40,7 @@ class SchedulerEnabledIT {
 
     /**
      * External API delays 4 seconds for response.
+     * Queue has not reached size 5.
      * Expect response to be returned in less than 10 seconds (Aggregator SLA)
      */
     @Test
