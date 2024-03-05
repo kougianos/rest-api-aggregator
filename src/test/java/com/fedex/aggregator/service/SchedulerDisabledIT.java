@@ -220,6 +220,7 @@ class SchedulerDisabledIT {
 
         // Perform the second webTestClient call
         CompletableFuture<Void> secondCall = CompletableFuture.runAsync(() -> {
+            sleep(200);
             webTestClient.get()
                 .uri("/aggregation?track=4,5")
                 .exchange()
@@ -294,6 +295,7 @@ class SchedulerDisabledIT {
 
         // Perform the second webTestClient call
         CompletableFuture<Void> secondCall = CompletableFuture.runAsync(() -> {
+            sleep(200);
             webTestClient.get()
                 .uri("/aggregation?shipments=4,5,6")
                 .exchange()
@@ -318,7 +320,7 @@ class SchedulerDisabledIT {
      * Verify queues empty.
      */
     @Test
-    @Disabled
+//    @Disabled
     void testQueueScenario3() {
         //Mock Track Response
         var trackResponse = new GenericMap();
@@ -365,16 +367,16 @@ class SchedulerDisabledIT {
         var expectedResponse2 = new LinkedHashMap<String, GenericMap>();
         expectedResponse2.put("shipments", new GenericMap(shipmentsResponse));
         expectedResponse2.get("shipments").remove("1");
-        expectedResponse2.get("shipments").remove("2");
-        expectedResponse2.get("shipments").remove("3");
+        expectedResponse2.get("shipments").remove("4");
+        expectedResponse2.get("shipments").remove("5");
+        expectedResponse2.get("shipments").remove("6");
 
         // Expected response 3
         var expectedResponse3 = new LinkedHashMap<String, GenericMap>();
         expectedResponse3.put("shipments", new GenericMap(shipmentsResponse));
         expectedResponse3.get("shipments").remove("1");
-        expectedResponse3.get("shipments").remove("4");
-        expectedResponse3.get("shipments").remove("5");
-        expectedResponse3.get("shipments").remove("6");
+        expectedResponse3.get("shipments").remove("2");
+        expectedResponse3.get("shipments").remove("3");
         expectedResponse3.put("pricing", new GenericMap(pricingResponse));
 
         // Perform the first webTestClient call
@@ -391,6 +393,7 @@ class SchedulerDisabledIT {
 
         // Perform the second webTestClient call
         CompletableFuture<Void> secondCall = CompletableFuture.runAsync(() -> {
+            sleep(200);
             webTestClient.get()
                 .uri("/aggregation?shipments=2,3")
                 .exchange()
@@ -403,6 +406,7 @@ class SchedulerDisabledIT {
 
         // Perform the third webTestClient call
         CompletableFuture<Void> thirdCall = CompletableFuture.runAsync(() -> {
+            sleep(500);
             webTestClient.get()
                 .uri("/aggregation?shipments=4,5,6&pricing=NL,CN,CH,GB,DE")
                 .exchange()
@@ -416,6 +420,14 @@ class SchedulerDisabledIT {
         CompletableFuture.allOf(firstCall, secondCall, thirdCall).join();
         queueManager.getApiQueues().values().forEach(queue -> assertTrue(queue.isEmpty()));
 
+    }
+
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
