@@ -78,3 +78,13 @@ In the above call, 2/3 queues are size <= 5. And the thread will block in one of
 A next call comes:
 `/aggregation?shipments=5,6,7`  
 which unblocks queue shipments, but thread A is not notified because it is blocked on queue track. This is handled as an edge case, and when Thread A eventually gets unblocked, it will perform an extra API call to the Track API, because it was blocked at the time the original Track API call was made, and the responses are only cached for 2 seconds in ExternalApiClient.
+
+##### AS-3: as FedEx, I want service calls to be scheduled periodically even if the queue is not full to prevent overly-long response times.
+A configurable QueueScheduler bean has been created for this user story, which can be enabled/disabled through application properties.  
+Also a custom `FedexQueue extends LinkedBlockingQueue<String>` has replaced the queues. This custom queue has an extra field 
+```java
+private Instant oldestElementInsertTimestamp;
+```
+which is used in the scheduled task that runs every 1 second and fills up any remaining queues with dummy values, notifying all waiting threads.
+
+The functionality is also tested in `SchedulerEnabledIT` to make sure our application meets the 10-second SLA for requests to the aggregation service.
