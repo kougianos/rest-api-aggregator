@@ -82,23 +82,34 @@ public class AggregationService {
 
         });
 
-        var localApiCall = new HashMap<>(apiCallMap);
+        // Edge case for when a Thread waits on 2 or more queues, and subsequent Threads don't fill all queues at once.
+        var localApiCallMap = new HashMap<>(apiCallMap);
+        parameters.forEach((apiName, params) -> {
+            if (!localApiCallMap.containsKey(apiName)) {
+                localApiCallMap.put(apiName, callAPI(new FedexQueue(), apiName, params));
+            }
+        });
+
         // Call only the APIs that were requested by this thread
-        localApiCall.keySet().removeIf(key -> !parameters.containsKey(key));
-        Mono<List<Entry<String, GenericMap>>> zippedApiCalls = zipApiResponses(localApiCall.values().stream().toList());
+        localApiCallMap.keySet().removeIf(key -> !parameters.containsKey(key));
+        Mono<List<Entry<String, GenericMap>>> zippedApiCalls = zipApiResponses(localApiCallMap.values().stream().toList());
 
         return zippedApiCalls.map(list -> transformToAggregatedResponse(list, parameters));
     }
 
     private void callAPIAndAddToMap(FedexQueue queue, String apiName) {
         String p = String.join(",", queue.stream().toList());
-        var apiCallMono = client.get(apiName, p)
+        var apiCallMono = callAPI(queue, apiName, p);
+        apiCallMap.put(apiName, apiCallMono);
+    }
+
+    private Mono<Entry<String,GenericMap>> callAPI(FedexQueue queue, String apiName, String params) {
+        return client.get(apiName, params)
             .doOnNext(response -> {
                 queue.clear();
                 apiCallMap.remove(apiName);
             })
             .map(response -> Map.entry(apiName, response));
-        apiCallMap.putIfAbsent(apiName, apiCallMono);
     }
 
     private Mono<List<Entry<String, GenericMap>>> zipApiResponses(List<Mono<Entry<String, GenericMap>>> monoList) {
