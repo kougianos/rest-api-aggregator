@@ -1,10 +1,6 @@
 package com.fedex.aggregator.service;
 
 import com.fedex.aggregator.dto.GenericMap;
-import lombok.SneakyThrows;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +8,9 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,31 +27,11 @@ import static org.mockito.Mockito.verify;
 @DirtiesContext
 class SchedulerDisabledIT {
 
-    protected static MockWebServer server;
-
     @Autowired
     QueueManager queueManager;
 
     @MockBean
     ExternalApiClient externalApiClient;
-
-    @BeforeAll
-    static void beforeAll() throws IOException {
-        server = new MockWebServer();
-        server.start();
-    }
-
-    @AfterAll
-    static void afterAll() throws IOException {
-        server.shutdown();
-    }
-
-    @DynamicPropertySource
-    @SneakyThrows
-    static void properties(DynamicPropertyRegistry registry) {
-        registry.add("app.external-api.url",
-            () -> "http://localhost:" + server.getPort());
-    }
 
     @Autowired
     WebTestClient webTestClient;
@@ -77,18 +50,6 @@ class SchedulerDisabledIT {
 
         var expectedResponse = new GenericMap();
         expectedResponse.put("track", trackResponse);
-
-//        server.enqueue(new MockResponse()
-//            .setResponseCode(HttpStatus.OK.value())
-//            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-//            .setBody("""
-//                 {
-//                     "1": "DELIVERING",
-//                     "2": "COLLECTING",
-//                     "3": "COLLECTED",
-//                     "4": "NEW",
-//                     "5": "NEW"
-//                 }"""));
 
         webTestClient.get()
             .uri("/aggregation?track=1,2,3,4,5")
