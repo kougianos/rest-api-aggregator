@@ -58,3 +58,23 @@ Straightforward requirement, the service dynamically creates 1-3 Mono<Response> 
 <br>
 As mentioned earlier, the service performs a number of requests to the External API, equal to the total number of the comma separated values in the original request. For example, for the call 
 `GET /aggregation?pricing=NL,CN,CH,GB,DE&track=1,2,3,4,5&shipments=1,2,3,4,5` **a total of 15 calls will be sent to the External API and this is by design.**
+
+
+##### AS-2: as FedEx, I want service calls to be throttled and bulked into consolidated requests per respective API to prevent services from being overloaded.
+A combination of `LinkedBlockingQueue<String>` and concurrent maps has been used to accommodate this task. For every REST call our service receives, it populates the required queues (depending on the request) and blocks the thread if any of the queues does not reach size >= 5. At this point a second REST call should be triggered, to populate any remaining queues and unblock the first REST call as well.  
+
+Several logs are in place that show the queue state during the time of requests, and every 4 seconds.  
+Also, the responses from the External API are also logged. This is useful because it shows that for multiple /aggregation calls, only 1 call is sent to the External API (per apiName).
+
+So, as described in the requirements, in the following scenario:
+- This request only triggers a call to the Pricing API /aggregation?pricing=NL,CN,CH,GB,DE&track=117347282,109347263,123456891
+- As soon as this request arrives, a call to the Track API is triggered as well: /aggregation?track=219389201,813434811
+
+Of course, there are more complex scenarios and edge cases that were manually tested, and the overall solution suffers under certain circumstances.  
+Example:
+`/aggregation?pricing=NL,CN,CH,GB,DE&track=1,2,3&shipments=1,2,3,4`  
+In the above call, 2/3 queues are size <= 5. And the thread will block in one of the two queues (usually track)
+
+A next call comes:
+`/aggregation?shipments=5,6,7`  
+which unblocks queue shipments, but thread A is not notified because it is blocked on queue track. This is handled as an edge case, and when Thread A eventually gets unblocked, it will perform an extra API call to the Track API, because it was blocked at the time the original Track API call was made, and the responses are only cached for 2 seconds in ExternalApiClient.
