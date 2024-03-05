@@ -26,6 +26,7 @@ where:
 **Workflow:**
 - 3 branches and 3 corresponding pull requests have been created, each one of them addressing the requirements described in the 3 user stories
 - Reviewers are welcome to check out to individual branches, see the commit history, and review the pull requests to easily identify the changes made from one story to another.
+- The end result is available on `main` branch. Automated testing has been done in the last branch for the whole application.
 
 The Intro mentions "We advise to develop the stories in order,
 since they build on each other. Consequently, later stories should not break the
