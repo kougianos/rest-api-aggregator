@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class AppProperties {
 
     private ExternalApi externalApi;
+    private boolean enableQueueScheduler;
 
     @Data
     public static class ExternalApi {

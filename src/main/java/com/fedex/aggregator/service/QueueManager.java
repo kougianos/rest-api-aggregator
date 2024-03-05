@@ -1,12 +1,11 @@
 package com.fedex.aggregator.service;
 
+import com.fedex.aggregator.queue.FedexQueue;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.fedex.aggregator.dto.Constants.*;
 
@@ -14,16 +13,16 @@ import static com.fedex.aggregator.dto.Constants.*;
 @Service
 public class QueueManager {
 
-    private final ConcurrentMap<String, BlockingQueue<String>> apiQueues;
+    private final ConcurrentMap<String, FedexQueue> apiQueues;
 
     public QueueManager() {
         this.apiQueues = new ConcurrentHashMap<>();
-        this.apiQueues.put(PRICING, new LinkedBlockingQueue<>());
-        this.apiQueues.put(TRACK, new LinkedBlockingQueue<>());
-        this.apiQueues.put(SHIPMENTS, new LinkedBlockingQueue<>());
+        this.apiQueues.put(PRICING, new FedexQueue());
+        this.apiQueues.put(TRACK, new FedexQueue());
+        this.apiQueues.put(SHIPMENTS, new FedexQueue());
     }
 
-    public BlockingQueue<String> get(String apiName) {
+    public FedexQueue get(String apiName) {
         return apiQueues.get(apiName);
     }
 

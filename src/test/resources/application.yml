@@ -1,0 +1,6 @@
+app:
+  external-api:
+    url: https://external-api-url.com
+    read-timeout-millis: 5000
+    connect-timeout-millis: 2000
+  enable-queue-scheduler: false
