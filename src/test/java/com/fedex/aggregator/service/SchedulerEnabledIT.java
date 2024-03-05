@@ -42,9 +42,12 @@ class SchedulerEnabledIT {
      * External API delays 4 seconds for response.
      * Queue has not reached size 5.
      * Expect response to be returned in less than 10 seconds (Aggregator SLA)
+     * Expect that the timer has been reset in the queue.
      */
     @Test
     void testQueueScheduler_1param() {
+
+        var queueOldestElementTimestamp1 = queueManager.getApiQueues().get("track").getOldestElementInsertTimestamp();
 
         var trackResponse = new GenericMap();
         trackResponse.put("1", "DELIVERING");
@@ -71,8 +74,11 @@ class SchedulerEnabledIT {
             });
         var timestamp2 = Instant.now();
 
+        var queueOldestElementTimestamp2 = queueManager.getApiQueues().get("track").getOldestElementInsertTimestamp();
+
         queueManager.getApiQueues().values().forEach(queue -> assertTrue(queue.isEmpty()));
         assertTrue(timestamp2.getEpochSecond() - timestamp1.getEpochSecond() < SLA_SECONDS);
+        assertTrue(queueOldestElementTimestamp2.isAfter(queueOldestElementTimestamp1));
 
     }
 
