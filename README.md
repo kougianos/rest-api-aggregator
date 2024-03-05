@@ -52,3 +52,9 @@ The aggregated response is basically a merge of all the responses from the Exter
 - Spring reactive / webflux has been used to have a complete asynhcronous reactive chain throughout the complete flow of the service.
 - Lombok is used for improved readability.
 - MockWebServer, WebTestClient and Mockito used in automated testing.
+
+##### AS-1: As FedEx, I want to be able to query all services in a single network call to optimise network traffic.
+Straightforward requirement, the service dynamically creates 1-3 Mono<Response> objects (depending on the requested parameters) and calls the External API asynchronously, handling any errors. The WebClient has been configured with a readTimeout=5 seconds because the SLA of the BE service is 5 seconds.  
+<br>
+As mentioned earlier, the service performs a number of requests to the External API, equal to the total number of the comma separated values in the original request. For example, for the call 
+`GET /aggregation?pricing=NL,CN,CH,GB,DE&track=1,2,3,4,5&shipments=1,2,3,4,5` **a total of 15 calls will be sent to the External API and this is by design.**
