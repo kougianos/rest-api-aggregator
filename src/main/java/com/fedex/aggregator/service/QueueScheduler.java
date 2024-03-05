@@ -4,6 +4,7 @@ import com.fedex.aggregator.queue.FedexQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,14 @@ import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
 @Slf4j
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.enable-queue-scheduler", havingValue = "true")
-public class QueueScheduler {
+public class QueueScheduler implements InitializingBean {
 
     private final QueueManager queueManager;
+
+    @Override
+    public void afterPropertiesSet() {
+        log.info("QueueScheduler is enabled!");
+    }
 
     @Scheduled(fixedRate = 1000)
     public void queueScheduler() {
