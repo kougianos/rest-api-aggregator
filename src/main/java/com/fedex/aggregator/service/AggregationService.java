@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 
 import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
 
@@ -23,7 +22,6 @@ public class AggregationService {
     private final ExternalApiClient client;
     private final QueueManager queueManager;
     private final Map<String, Mono<Entry<String, GenericMap>>> apiCallMap = new ConcurrentHashMap<>();
-    private final Semaphore semaphore = new Semaphore(1);
 
     public Mono<Map<String, GenericMap>> getAggregatedResponse(Map<String, String> parameters) {
         var completedApis = new HashSet<>();
@@ -100,10 +98,10 @@ public class AggregationService {
     private void callAPIAndAddToMap(FedexQueue queue, String apiName) {
         String p = String.join(",", queue.stream().toList());
         var apiCallMono = callAPI(queue, apiName, p);
-        apiCallMap.put(apiName, apiCallMono);
+        apiCallMap.putIfAbsent(apiName, apiCallMono);
     }
 
-    private Mono<Entry<String,GenericMap>> callAPI(FedexQueue queue, String apiName, String params) {
+    private Mono<Entry<String, GenericMap>> callAPI(FedexQueue queue, String apiName, String params) {
         return client.get(apiName, params)
             .doOnNext(response -> {
                 queue.clear();
