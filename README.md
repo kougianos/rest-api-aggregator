@@ -45,7 +45,7 @@ Which suggests that individual API calls should be sent for every comma separate
 The project has a relatively flat structure with a few indicative packages.  
 ![image](https://github.com/kougianos/fedex-aggregator/assets/23719920/d46a987e-f57f-4b9a-a47c-65d8e9a1e0cd)
 
-As far as data transfer objects are concerned, a GenericMap (which extends LinkedHashMap<String, Object>) has been chosen for simplicity reasons, to map both the responses from the External API to our service, and to create the aggregated response to the end user. The reason behind this is that there isn't any transformation logic in the layers of the application:
+As far as data transfer objects are concerned, a `GenericMap extends LinkedHashMap<String, Object>` has been chosen for simplicity reasons, to map both the responses from the External API to our service, and to create the aggregated response to the end user. The reason behind this is that there isn't any transformation logic in the layers of the application:
 The aggregated response is basically a merge of all the responses from the External API, with key=apiName and value=response from External API.
 
 ##### Technologies used:
