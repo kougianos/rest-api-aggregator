@@ -1,3 +1,11 @@
+### Introduction
+This project was implemented in the context of technical assessment during an interview process with a multinational company.  
+Detailed requirements can be found in assessment_backend_java.pdf file.  
+In short, it is a Spring boot service with the following functionalities:
+1. Integrate with 3 REST APIs and dynamically combine the responses into 1, depending on the client's requested parameters.
+2. Implement request throttling and batching of individual requests, using BlockingQueues (more details below).
+3. Create a scheduler that periodically checks items left in queues, and returns a response to the caller, guaranteeing a 10-second SLA
+
 ### How to run
 **Using Maven Wrapper**, specifying application server port and Queue Scheduler (story 3) flag:  
 Windows:
