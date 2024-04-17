@@ -43,7 +43,7 @@ functionality already implemented in the earlier stories."
 however, there is a difference in the requirements of the service between story 1 and story 2:
 
 The API Aggregation Service Contract  has this request/response example:
-![image](https://github.com/kougianos/fedex-aggregator/assets/23719920/bb363f46-4479-4c12-b690-b9453acee8a5)
+![image](https://github.com/kougianos/rest-api-aggregator/assets/23719920/3f0d7a08-38fc-4f63-a901-2585447e0633)
 
 Which suggests that individual API calls should be sent for every comma separated value in the parameters. Thus, in this particular example **a total of 6 API calls are sent to the External API** (2 calls for pricing, 2 for track, 2 for shipments) Otherwise it wouldn't be possible to have one value populated and one value null, like it is shown in the example.
 
@@ -51,7 +51,7 @@ Which suggests that individual API calls should be sent for every comma separate
 
 ##### Project structure:
 The project has a relatively flat structure with a few indicative packages.  
-![image](https://github.com/kougianos/fedex-aggregator/assets/23719920/d46a987e-f57f-4b9a-a47c-65d8e9a1e0cd)
+![image](https://github.com/kougianos/rest-api-aggregator/assets/23719920/3bf03c57-0d79-461b-9142-357aa7c7aea7)
 
 As far as data transfer objects are concerned, a `GenericMap extends LinkedHashMap<String, Object>` has been chosen for simplicity reasons, to map both the responses from the External API to our service, and to create the aggregated response to the end user. The reason behind this is that there isn't any transformation logic in the layers of the application:
 The aggregated response is basically a merge of all the responses from the External API, with key=apiName and value=response from External API.
