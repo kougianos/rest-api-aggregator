@@ -61,14 +61,14 @@ The aggregated response is basically a merge of all the responses from the Exter
 - Lombok is used for improved readability.
 - MockWebServer, WebTestClient and Mockito used in automated testing.
 
-##### AS-1: As FedEx, I want to be able to query all services in a single network call to optimise network traffic.
+##### AS-1: As COMPANY, I want to be able to query all services in a single network call to optimise network traffic.
 Straightforward requirement, the service dynamically creates 1-3 Mono<Response> objects (depending on the requested parameters) and calls the External API asynchronously, handling any errors. The WebClient has been configured with a readTimeout=5 seconds because the SLA of the BE service is 5 seconds.  
 <br>
 As mentioned earlier, the service performs a number of requests to the External API, equal to the total number of the comma separated values in the original request. For example, for the call 
 `GET /aggregation?pricing=NL,CN,CH,GB,DE&track=1,2,3,4,5&shipments=1,2,3,4,5` **a total of 15 calls will be sent to the External API and this is by design.**
 
 
-##### AS-2: as FedEx, I want service calls to be throttled and bulked into consolidated requests per respective API to prevent services from being overloaded.
+##### AS-2: as COMPANY, I want service calls to be throttled and bulked into consolidated requests per respective API to prevent services from being overloaded.
 A combination of `LinkedBlockingQueue<String>` and concurrent maps has been used to accommodate this task. For every REST call our service receives, it populates the required queues (depending on the request) and blocks the thread if any of the queues does not reach size >= 5. At this point a second REST call should be triggered, to populate any remaining queues and unblock the first REST call as well.  
 
 Several logs are in place that show the queue state during the time of requests, and every 4 seconds.  
@@ -87,7 +87,7 @@ A next call comes:
 `/aggregation?shipments=5,6,7`  
 which unblocks queue shipments, but thread A is not notified because it is blocked on queue track. This is handled as an edge case, and when Thread A eventually gets unblocked, it will perform an extra API call to the Track API, because it was blocked at the time the original Track API call was made, and the responses are only cached for 2 seconds in ExternalApiClient.
 
-##### AS-3: as FedEx, I want service calls to be scheduled periodically even if the queue is not full to prevent overly-long response times.
+##### AS-3: as COMPANY, I want service calls to be scheduled periodically even if the queue is not full to prevent overly-long response times.
 A configurable QueueScheduler bean has been created for this user story, which can be enabled/disabled through application properties.  
 Also a custom `FedexQueue extends LinkedBlockingQueue<String>` has replaced the queues. This custom queue has an extra field 
 ```java
