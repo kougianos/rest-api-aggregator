@@ -1,6 +1,6 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.dto.GenericMap;
+import com.kougianos.aggregator.dto.GenericMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

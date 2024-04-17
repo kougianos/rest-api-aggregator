@@ -1,4 +1,4 @@
-package com.fedex.aggregator.queue;
+package com.kougianos.aggregator.queue;
 
 import lombok.Getter;
 import org.springframework.lang.NonNull;

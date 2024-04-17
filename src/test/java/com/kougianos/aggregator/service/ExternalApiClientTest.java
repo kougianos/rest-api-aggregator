@@ -1,6 +1,6 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.dto.GenericMap;
+import com.kougianos.aggregator.dto.GenericMap;
 import lombok.SneakyThrows;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

@@ -1,4 +1,4 @@
-package com.fedex.aggregator.config;
+package com.kougianos.aggregator.config;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;

@@ -1,6 +1,6 @@
-package com.fedex.aggregator.router;
+package com.kougianos.aggregator.router;
 
-import com.fedex.aggregator.service.AggregationService;
+import com.kougianos.aggregator.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import static com.fedex.aggregator.dto.Constants.*;
+import static com.kougianos.aggregator.dto.Constants.*;
 
 @Service
 @Slf4j

@@ -1,6 +1,6 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.dto.GenericMap;
+import com.kougianos.aggregator.dto.GenericMap;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

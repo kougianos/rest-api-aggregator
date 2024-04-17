@@ -1,6 +1,6 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.queue.FedexQueue;
+import com.kougianos.aggregator.queue.FedexQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
-import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
+import static com.kougianos.aggregator.dto.Constants.QUEUE_SIZE;
 
 @Service
 @Slf4j

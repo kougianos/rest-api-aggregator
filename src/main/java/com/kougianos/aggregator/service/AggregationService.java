@@ -1,7 +1,7 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.dto.GenericMap;
-import com.fedex.aggregator.queue.FedexQueue;
+import com.kougianos.aggregator.dto.GenericMap;
+import com.kougianos.aggregator.queue.FedexQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.fedex.aggregator.dto.Constants.QUEUE_SIZE;
+import static com.kougianos.aggregator.dto.Constants.QUEUE_SIZE;
 
 @Service
 @Slf4j

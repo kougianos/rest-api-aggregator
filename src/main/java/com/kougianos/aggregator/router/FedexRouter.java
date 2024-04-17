@@ -1,4 +1,4 @@
-package com.fedex.aggregator.router;
+package com.kougianos.aggregator.router;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

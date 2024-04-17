@@ -1,4 +1,4 @@
-package com.fedex.aggregator.dto;
+package com.kougianos.aggregator.dto;
 
 import java.util.LinkedHashMap;
 

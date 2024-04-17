@@ -1,6 +1,6 @@
-package com.fedex.aggregator.util;
+package com.kougianos.aggregator.util;
 
-import com.fedex.aggregator.dto.GenericMap;
+import com.kougianos.aggregator.dto.GenericMap;
 
 import java.util.Map;
 

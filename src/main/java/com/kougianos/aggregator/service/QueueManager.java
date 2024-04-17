@@ -1,13 +1,13 @@
-package com.fedex.aggregator.service;
+package com.kougianos.aggregator.service;
 
-import com.fedex.aggregator.queue.FedexQueue;
+import com.kougianos.aggregator.queue.FedexQueue;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.fedex.aggregator.dto.Constants.*;
+import static com.kougianos.aggregator.dto.Constants.*;
 
 @Getter
 @Service

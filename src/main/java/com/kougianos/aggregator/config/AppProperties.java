@@ -1,4 +1,4 @@
-package com.fedex.aggregator.config;
+package com.kougianos.aggregator.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

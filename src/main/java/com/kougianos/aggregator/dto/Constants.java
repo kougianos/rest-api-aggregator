@@ -1,4 +1,4 @@
-package com.fedex.aggregator.dto;
+package com.kougianos.aggregator.dto;
 
 public final class Constants {
 
