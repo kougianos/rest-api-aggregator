@@ -11,14 +11,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class FedexRouter {
+public class ServiceRouter {
 
-    private final FedexHandler fedexHandler;
+    private final ServiceHandler serviceHandler;
 
     @Bean
     public RouterFunction<ServerResponse> aggregatorRouter() {
         return RouterFunctions.route()
-            .GET("/aggregation", fedexHandler::getAggregatedResponse)
+            .GET("/aggregation", serviceHandler::getAggregatedResponse)
             .build();
     }
 

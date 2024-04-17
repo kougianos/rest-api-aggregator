@@ -7,11 +7,11 @@ import java.time.Instant;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Getter
-public class FedexQueue extends LinkedBlockingQueue<String> {
+public class CustomQueue extends LinkedBlockingQueue<String> {
 
     private Instant oldestElementInsertTimestamp;
 
-    public FedexQueue() {
+    public CustomQueue() {
         this.oldestElementInsertTimestamp = Instant.now();
     }
 

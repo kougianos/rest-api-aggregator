@@ -20,7 +20,7 @@ import static com.kougianos.aggregator.dto.Constants.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FedexHandler {
+public class ServiceHandler {
 
     // can be moved to app properties
     private static final List<String> ACCEPTABLE_PARAMETERS = List.of(PRICING, TRACK, SHIPMENTS);

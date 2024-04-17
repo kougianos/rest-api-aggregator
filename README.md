@@ -89,7 +89,7 @@ which unblocks queue shipments, but thread A is not notified because it is block
 
 ##### AS-3: as COMPANY, I want service calls to be scheduled periodically even if the queue is not full to prevent overly-long response times.
 A configurable QueueScheduler bean has been created for this user story, which can be enabled/disabled through application properties.  
-Also a custom `FedexQueue extends LinkedBlockingQueue<String>` has replaced the queues. This custom queue has an extra field 
+Also a custom `CustomQueue extends LinkedBlockingQueue<String>` has replaced the queues. This custom queue has an extra field 
 ```java
 private Instant oldestElementInsertTimestamp;
 ```

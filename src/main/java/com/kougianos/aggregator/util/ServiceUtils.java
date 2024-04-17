@@ -4,9 +4,9 @@ import com.kougianos.aggregator.dto.GenericMap;
 
 import java.util.Map;
 
-public final class FedexUtils {
+public final class ServiceUtils {
 
-    private FedexUtils() {
+    private ServiceUtils() {
         throw new IllegalStateException("Util class");
     }
 

@@ -1,6 +1,6 @@
 package com.kougianos.aggregator.service;
 
-import com.kougianos.aggregator.queue.FedexQueue;
+import com.kougianos.aggregator.queue.CustomQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -46,7 +46,7 @@ public class QueueScheduler implements InitializingBean {
         });
     }
 
-    private boolean compareWithNow(FedexQueue queue) {
+    private boolean compareWithNow(CustomQueue queue) {
         var now = Instant.now();
         var result = now.getEpochSecond() - queue.getOldestElementInsertTimestamp().getEpochSecond() >= 5;
         log.debug("Comparing {} with {} {}",

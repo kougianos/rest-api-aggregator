@@ -1,7 +1,7 @@
 package com.kougianos.aggregator.service;
 
 import com.kougianos.aggregator.dto.GenericMap;
-import com.kougianos.aggregator.queue.FedexQueue;
+import com.kougianos.aggregator.queue.CustomQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -84,7 +84,7 @@ public class AggregationService {
         var localApiCallMap = new HashMap<>(apiCallMap);
         parameters.forEach((apiName, params) -> {
             if (!localApiCallMap.containsKey(apiName)) {
-                localApiCallMap.put(apiName, callAPI(new FedexQueue(), apiName, params));
+                localApiCallMap.put(apiName, callAPI(new CustomQueue(), apiName, params));
             }
         });
 
@@ -95,13 +95,13 @@ public class AggregationService {
         return zippedApiCalls.map(list -> transformToAggregatedResponse(list, parameters));
     }
 
-    private void callAPIAndAddToMap(FedexQueue queue, String apiName) {
+    private void callAPIAndAddToMap(CustomQueue queue, String apiName) {
         String p = String.join(",", queue.stream().toList());
         var apiCallMono = callAPI(queue, apiName, p);
         apiCallMap.putIfAbsent(apiName, apiCallMono);
     }
 
-    private Mono<Entry<String, GenericMap>> callAPI(FedexQueue queue, String apiName, String params) {
+    private Mono<Entry<String, GenericMap>> callAPI(CustomQueue queue, String apiName, String params) {
         return client.get(apiName, params)
             .doOnNext(response -> {
                 queue.clear();
