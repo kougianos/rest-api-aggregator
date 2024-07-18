@@ -1,5 +1,5 @@
 ### Introduction
-This project was implemented in the context of technical assessment during an interview process with a multinational company.  
+This project was implemented in the context of technical assessment during an interview process with a multinational company.  <br>
 Detailed requirements can be found in assessment_backend_java.pdf file.  
 In short, it is a Spring boot service with the following functionalities:
 1. Integrate with 3 REST APIs and dynamically combine the responses into 1, depending on the client's requested parameters.
